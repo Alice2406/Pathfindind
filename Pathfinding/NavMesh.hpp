@@ -88,8 +88,34 @@ struct NavMesh {
         }
         return -1;
     }
-    const Portal* Between(int a, int b) const;
-    void BuildGraph();
+    const Portal* Between(int a, int b) const
+    {
+        for (Portal p : portals)
+        {
+            if ((p.a == a && p.b == b) || (p.a == b && p.b == a))
+                return &p;
+        }
+        return nullptr;
+    }
+    void BuildGraph()
+    {
+        Point middle;
+        double cost;
+        graph.clear();
+        graph.resize(polygons.size());
+        for (Portal p : portals)
+        {
+            if (p.a < 0 || p.b < 0 || p.a >= polygons.size() || p.b >= polygons.size() || p.a == p.b)
+                throw std::invalid_argument("indice de portail invalides");
+            if (Distance(p.left, p.right) < 1e-8)
+                throw std::invalid_argument("longueur nulle");
+            if (!Contains(polygons[p.a], p.left) || !Contains(polygons[p.b], p.right))
+                throw std::invalid_argument("extremite n'est pas dans la bonne region");
+            middle = p.Middle();
+            cost = Distance(polygons[p.a].center, middle) + Distance(middle, polygons[p.b].center);
+            AddUndirected(graph, p.a, p.b, cost);
+        }
+    }
 };
 
 struct NavPath {
@@ -98,80 +124,27 @@ struct NavPath {
     double routeCost = std::numeric_limits<double>::infinity();
 };
 
-inline NavMesh MakeDemoMesh();
+inline NavMesh MakeDemoMesh()
+{
+    NavMesh mesh;
 
-inline NavPath FindNavPath(const NavMesh& mesh, Point start,
-    Point goal, bool useAStar = true); // Étape 7
+    mesh.polygons = {
+        MakePolygon({ { 0,2 },{ 4,2 },{ 4,0 },{ 0,0 } }),
+        MakePolygon({ { 4,2 },{ 6,2 },{ 6,0 },{ 4,0 } }),
+        MakePolygon({ { 4,6 },{ 6,6 },{ 6,2 },{ 4,2 } }),
+        MakePolygon({ { 8,2 },{ 10,2 },{ 10,0 },{ 8,0 } })
+    };
 
+    mesh.portals = {
+        {0, 1, {4, 0}, {4, 2}},
+        {1, 2, {4, 2}, {6, 2}}
+    };
+    mesh.BuildGraph();
+    return mesh;
+}
 
+inline NavPath FindNavPath(const NavMesh& mesh, Point start, Point goal, bool useAStar = true)
+{
 
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//const Portal* Between(int a, int b) const
-//{
-//    for (Portal p : portals)
-//    {
-//        if ((p.a == a && p.b == b) || (p.a == b && p.b == a))
-//            return &p;
-//    }
-//    return nullptr;
-//}
-//void BuildGraph()
-//{
-//    Point middle;
-//    double cost;
-//    graph.clear();
-//    graph.resize(polygons.size());
-//    for (Portal p : portals)
-//    {
-//        if (p.a < 0 || p.b < 0 || p.a >= polygons.size() || p.b >= polygons.size() || p.a == p.b)
-//            throw std::invalid_argument("indice de portail invalides");
-//        if (Distance(p.left, p.right) < 1e-8)
-//            throw std::invalid_argument("longueur nulle");
-//        if (!Contains(polygons[p.a], p.left) || !Contains(polygons[p.b], p.right))
-//            throw std::invalid_argument("extremite n'est pas dans la bonne region");
-//        middle = p.Middle();
-//        cost = Distance(polygons[p.a].center, middle) + Distance(middle, polygons[p.b].center);
-//        AddUndirected(graph, p.a, p.b, cost);
-//    }
-//}
-//inline NavMesh MakeDemoMesh()
-//{
-//    NavMesh mesh;
-//    mesh.polygons = {
-//        MakePolygon({ { 0,2 },{ 4,2 },{ 4,0 },{ 0,0 } }),
-//        MakePolygon({ { 4,2 },{ 6,2 },{ 6,0 },{ 4,0 } }),
-//        MakePolygon({ { 4,6 },{ 6,6 },{ 6,2 },{ 4,2 } }),
-//        MakePolygon({ { 8,2 },{ 10,2 },{ 10,0 },{ 8,0 } })
-//    };
-//    mesh.portals = {
-//    { 0, 1,{ 4,0 },{ 4,2 } },
-//    { 1, 2,{ 4,2 },{ 6,2 } }
-//    };
-//    mesh.BuildGraph();
-//    return mesh;
-//}
