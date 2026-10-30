@@ -139,9 +139,11 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Agent.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Agent.hpp" />
     <ClInclude Include="Graph.hpp" />
     <ClInclude Include="NavMesh.hpp" />
     <ClInclude Include="Search.hpp" />
